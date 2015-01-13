@@ -4,11 +4,12 @@
 
 {% block body %}
   <header>
-    <h2>{{ title }}</h2>
     {% if cur_lang == base_lang %}
+    <h2>{{ title }}</h2>
     <h3>({{ path }})</h3>
     {% else %}
-    <h3>(translation of <a href="/{{base_lang}}/{{path}}">{{ path }}</a>)</h3>
+    <h2>{{ title }}</h2>
+    <h3>({{ translation }}% translation of <a href="/{{base_lang}}/{{path}}">{{ path }}</a>)</h3>
     {% end %}
     <select id="langs">
       {% for lang in sorted(langs) %}

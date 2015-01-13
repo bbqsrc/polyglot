@@ -136,13 +136,20 @@ class API:
 
         content = []
 
+        total = 0
+        stale = 0
+        untranslated = 0
+
         for bl, l in zip_longest(base_record['content'], record['content']):
+            total += 1
             if l['rev'] is None:
+                untranslated += 1
                 bl['untranslated'] = True
                 bl['base_data'] = bl['data']
                 bl['data'] = None
                 content.append(bl)
             elif bl['rev'] != l['rev']:
+                stale += 1
                 l['stale'] = True
                 l['base_data'] = bl['data']
                 content.append(l)
@@ -153,7 +160,12 @@ class API:
             "path": path,
             "title": record['title'],
             "lang": language,
-            "content": content
+            "content": content,
+            "translation": {
+                "stale": stale,
+                "untranslated": untranslated,
+                "total": total
+            }
         }
 
     def get_most_recent_articles(self, lang):
@@ -220,13 +232,17 @@ class PageHandler(BaseHandler):
                     langs=langs + [iso639])
             return
 
+        t = record['translation']
+        total = "%.0f" % (100 - ((t['stale'] + t['untranslated']) / t['total'] * 100))
+
         self.render('article.html',
                 title=record['title'],
                 path=path,
                 content=record['content'],
                 cur_lang=iso639,
                 base_lang=api.base_lang,
-                langs=langs)
+                langs=langs,
+                translation=total)
 
 routes = (
     (r"/", RedirectHandler),
