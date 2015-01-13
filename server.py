@@ -50,15 +50,19 @@ class API:
 
             sets = {}
             unsets = {}
-            max_ = -1
+            pushes = []
+            max_ = len(base_article['content'])
 
             for index, data in changes:
                 if data is None:
                     # Delete the line.
                     unsets['content.%d' % index] = None
+                elif index == -1:
+                    # Append to end!
+                    pushes.append({"rev": uuid.uuid4().hex, "data": data})
+                elif index >= max_:
+                    raise Exception("No.")
                 else:
-                    if index > max_:
-                        max_ = index
                     sets['content.%d' % index] = {
                             "data": data,
                             "rev": uuid.uuid4().hex
@@ -69,8 +73,8 @@ class API:
             # 1. Unset the things
             if len(unsets) > 0:
                 self.db.polyglot.articles.update({"path": path}, {
-                        "$set": unsets
-                    })
+                        "$unset": unsets
+                    }, multi=True)
 
             # 2. update the thing
             if len(sets) > 0:
@@ -78,22 +82,23 @@ class API:
                         "$set": sets
                     })
 
-            # 2a. check if new lines added
-                diff = max_ + len(unsets) - len(base_article['content'])
-                logging.debug(diff)
-
-                if diff > 0:
-                    self.db.polyglot.articles.update({"path": path, "lang": {"$ne": lang}}, {
-                        "$push": { "content": {
-                              "$each": [ { "rev": None } for _ in range(diff) ]
-                        }}
+            if len(pushes) > 0:
+                # 2a. check if new lines added
+                self.db.polyglot.articles.update({"path": path, "lang": lang}, {
+                        "$push": { "content": { "$each": pushes } }
                     })
 
-            # 3. Delete the nulls.
-            self.db.polyglot.articles.update({"path": path}, {
-                    "$pull": {"content": None}
-                })
+                self.db.polyglot.articles.update({"path": path, "lang": {"$ne": lang}}, {
+                    "$push": { "content": {
+                          "$each": [ { "rev": None } for _ in pushes ]
+                    }}
+                }, multi=True)
 
+            # 3. Delete the nulls.
+            if len(unsets) > 0:
+                self.db.polyglot.articles.update({"path": path}, {
+                        "$pull": {"content": None}
+                    }, multi=True)
         else:
             chgs = {}
 
@@ -172,8 +177,14 @@ class AdminHandler(BaseHandler):
 
 class PageHandler(BaseHandler):
     def post(self, iso639, path):
-        line = self.get_body_argument('line')
-        if line is not None:
+        line = self.get_body_argument('line', None)
+        add = self.get_body_argument('add', None)
+
+        logging.debug(add)
+
+        if add is not None:
+            api.update_article(iso639, path, [(-1, self.get_body_argument('data'))])
+        elif line is not None:
             # edit mode!
             api.update_article(iso639, path, [(int(line), self.get_body_argument('data'))])
         else:
@@ -200,6 +211,7 @@ class PageHandler(BaseHandler):
                 path=path,
                 content=record['content'],
                 cur_lang=iso639,
+                base_lang=api.base_lang,
                 langs=langs)
 
 routes = (
@@ -226,12 +238,12 @@ def main():
     ])
 
     api.update_article("en", "test-article", [
-        (3, "A new line has appeared."),
+        (-1, "A new line has appeared."),
         (0, None)
     ])
 
     api.update_article("en", "test-article", [
-        (3, "A new line has appeared."),
+        (-1, "A new line has appeared."),
     ])
 
     api.update_article("fr", "test-article", [

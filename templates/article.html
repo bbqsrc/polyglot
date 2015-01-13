@@ -29,17 +29,25 @@
 
       #langs { margin-left: 1em; }
 
-      h3 { color: #999; font-weight: normal; margin-left: .3em }
+      h3 { color: #999; font-weight: normal; margin-left: .3em; font-size: 1.1em; }
+      h3 > a:hover { color: #777; }
+      h3 > a:active { color: #555; }
+      h3 > a:visited { color: #888; }
 
       .line { margin-bottom: 1em; }
 
+      hr { height: 1px; border: 0; background-color: #ddd; }
     </style>
   </head>
   <body>
     <div class="container">
       <div>
         <h2>{{ title }}</h2>
-        <h3>{{ path }}</h3>
+        {% if cur_lang == base_lang %}
+        <h3>({{ path }})</h3>
+        {% else %}
+        <h3>(translation of <a href="/{{base_lang}}/{{path}}">{{ path }}</a>)</h3>
+        {% end %}
         <select id="langs">
           {% for lang in sorted(langs) %}
             {% if cur_lang != lang %}
@@ -51,24 +59,34 @@
         </select>
       </div>
 
+      <div class="lines">
       {% for line in content %}
         {% if line.get('stale', None) %}
-        <div class='line stale' title="{{ escape(line['base_data']) }}"><span>
+        <div class='line stale' data-rev="{{ line['rev'] }}"><span title="{{ escape(line['base_data']) }}">
             {{ line['data'] }}
         {% elif line.get('untranslated', None) %}
         <div class='line untranslated'><span>
           {{ line['base_data'] }}
         {% else %}
-        <div class="line"><span>
+        <div class="line" data-rev="{{ line['rev'] }}"><span>
           {{ line['data'] }}
-          {% end %}</span>
+        {% end %}</span>
           <button type='button' class='btn-edit'>Edit</button>
         </div>
       {% end %}
+      </div>
+
+      {% if cur_lang == base_lang %}
+      <hr>
 
       <form method="post">
-
+        <p>Add new paragraph</p>
+        <input type="hidden" name="add" value="true">
+        <textarea name="data" style="width: 100%; box-sizing: border-box;"></textarea>
+        <br>
+        <input type="submit">
       </form>
+      {% end %}
     </div>
     <script>
       document.getElementById('langs').addEventListener('change', function() {
@@ -92,7 +110,7 @@
               var lineNo = document.createElement("input");
               lineNo.type = "hidden";
               lineNo.name = "line";
-              lineNo.value = Array.prototype.indexOf.call(this.parentNode.children, this);
+              lineNo.value = Array.prototype.indexOf.call(this.parentNode.parentNode.children, this.parentNode);
               form.appendChild(lineNo);
 
               var content = document.createElement("textarea");
