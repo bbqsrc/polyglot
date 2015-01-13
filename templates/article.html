@@ -1,148 +1,111 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Article!</title>
-    <style>
+{% extends "base.html" %}
 
-      body {
-        background-color: #f1efef;
-      }
-      .container {
-        max-width: 920px;
-        margin: 0 auto;
-        font-family: "Open Sans", sans-serif;
-        font-size: 11pt;
-        color: #444;
-      }
+{% block title %}{{title}} - Polyglot{% end %}
 
-      .untranslated {
-        color: #966;
-      }
-
-      .stale {
-        color: #999;
-      }
-
-      h2, h3 {
-        display: inline-block;
-      }
-
-      #langs { margin-left: 1em; }
-
-      h3 { color: #999; font-weight: normal; margin-left: .3em; font-size: 1.1em; }
-      h3 > a:hover { color: #777; }
-      h3 > a:active { color: #555; }
-      h3 > a:visited { color: #888; }
-
-      .line { margin-bottom: 1em; }
-
-      hr { height: 1px; border: 0; background-color: #ddd; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div>
-        <h2>{{ title }}</h2>
-        {% if cur_lang == base_lang %}
-        <h3>({{ path }})</h3>
+{% block body %}
+  <header>
+    <h2>{{ title }}</h2>
+    {% if cur_lang == base_lang %}
+    <h3>({{ path }})</h3>
+    {% else %}
+    <h3>(translation of <a href="/{{base_lang}}/{{path}}">{{ path }}</a>)</h3>
+    {% end %}
+    <select id="langs">
+      {% for lang in sorted(langs) %}
+        {% if cur_lang != lang %}
+          <option value="{{ lang }}">{{ lang }}</option>
         {% else %}
-        <h3>(translation of <a href="/{{base_lang}}/{{path}}">{{ path }}</a>)</h3>
+          <option selected value="{{ lang }}">{{ lang }}</option>
         {% end %}
-        <select id="langs">
-          {% for lang in sorted(langs) %}
-            {% if cur_lang != lang %}
-              <option value="{{ lang }}">{{ lang }}</option>
-            {% else %}
-              <option selected value="{{ lang }}">{{ lang }}</option>
-            {% end %}
-          {% end %}
-        </select>
-      </div>
-
-      <div class="lines">
-      {% for line in content %}
-        {% if line.get('stale', None) %}
-        <div class='line stale' data-rev="{{ line['rev'] }}"><span title="{{ escape(line['base_data']) }}">
-            {{ line['data'] }}
-        {% elif line.get('untranslated', None) %}
-        <div class='line untranslated'><span>
-          {{ line['base_data'] }}
-        {% else %}
-        <div class="line" data-rev="{{ line['rev'] }}"><span>
-          {{ line['data'] }}
-        {% end %}</span>
-          <button type='button' class='btn-edit'>Edit</button>
-        </div>
       {% end %}
-      </div>
+    </select>
+  </header>
 
-      {% if cur_lang == base_lang %}
-      <hr>
-
-      <form method="post">
-        <p>Add new paragraph</p>
-        <input type="hidden" name="add" value="true">
-        <textarea name="data" style="width: 100%; box-sizing: border-box;"></textarea>
-        <br>
-        <input type="submit">
-      </form>
-      {% end %}
+  <div class="lines">
+  {% for line in content %}
+    {% if line.get('stale', None) %}
+    <div class='line stale' data-rev="{{ line['rev'] }}"><span title="{{ escape(line['base_data']) }}">
+        {{ line['data'] }}
+    {% elif line.get('untranslated', None) %}
+    <div class='line untranslated'><span>
+      {{ line['base_data'] }}
+    {% else %}
+    <div class="line" data-rev="{{ line['rev'] }}"><span>
+      {{ line['data'] }}
+    {% end %}</span>
+      <button type='button' class='btn-edit'>Edit</button>
     </div>
-    <script>
-      document.getElementById('langs').addEventListener('change', function() {
-        if (this.value !== "") {
-          location.href = "/" + this.value + "/{{ path }}";
-        }
-      });
+  {% end %}
+  </div>
 
-      var edits = document.querySelectorAll(".btn-edit");
-      for (var i = 0; i < edits.length; ++i) {
-          edits[i].addEventListener('click', function() {
-              if (this.previousElementSibling.style.display === "none") {
-                this.previousElementSibling.style.display = "";
-                this.parentNode.removeChild(this.nextElementSibling);
-                return;
-              }
+  {% if cur_lang == base_lang %}
+  <hr>
 
-              var form = document.createElement("form");
-              form.method = "post";
+  <form method="post">
+    <p>Add new paragraph</p>
+    <input type="hidden" name="add" value="true">
+    <textarea name="data" style="width: 100%; box-sizing: border-box;"></textarea>
+    <br>
+    <input type="submit">
+  </form>
+  {% end %}
+{% end %}
 
-              var lineNo = document.createElement("input");
-              lineNo.type = "hidden";
-              lineNo.name = "line";
-              lineNo.value = Array.prototype.indexOf.call(this.parentNode.parentNode.children, this.parentNode);
-              form.appendChild(lineNo);
-
-              var content = document.createElement("textarea");
-              content.name = "data";
-              content.value = this.previousElementSibling.innerHTML.trim();
-              content.style.width = "100%";
-              content.style.boxSizing = "border-box";
-              form.appendChild(content);
-
-              form.appendChild(document.createElement("br"));
-
-              var submit = document.createElement("input");
-              submit.type = "submit";
-              form.appendChild(submit);
-
-              var cancel = document.createElement("button");
-              cancel.type = "button";
-              cancel.innerHTML = "Cancel";
-              form.appendChild(cancel);
-
-              cancel.addEventListener("click", function() {
-                  var kids = this.parentNode.parentNode.children;
-                  kids[0].style.display = "";
-                  kids[1].style.display = "";
-                  this.parentNode.parentNode.removeChild(this.parentNode);
-              });
-
-              this.previousElementSibling.style.display = "none";
-              this.style.display = "none";
-              this.parentNode.appendChild(form);
-          });
+{% block scripts %}
+  <script>
+    document.getElementById('langs').addEventListener('change', function() {
+      if (this.value !== "") {
+        location.href = "/" + this.value + "/{{ path }}";
       }
-    </script>
-  </body>
-</html>
+    });
+
+    var edits = document.querySelectorAll(".btn-edit");
+    for (var i = 0; i < edits.length; ++i) {
+        edits[i].addEventListener('click', function() {
+            if (this.previousElementSibling.style.display === "none") {
+              this.previousElementSibling.style.display = "";
+              this.parentNode.removeChild(this.nextElementSibling);
+              return;
+            }
+
+            var form = document.createElement("form");
+            form.method = "post";
+
+            var lineNo = document.createElement("input");
+            lineNo.type = "hidden";
+            lineNo.name = "line";
+            lineNo.value = Array.prototype.indexOf.call(this.parentNode.parentNode.children, this.parentNode);
+            form.appendChild(lineNo);
+
+            var content = document.createElement("textarea");
+            content.name = "data";
+            content.value = this.previousElementSibling.innerHTML.trim();
+            content.style.width = "100%";
+            content.style.boxSizing = "border-box";
+            form.appendChild(content);
+
+            form.appendChild(document.createElement("br"));
+
+            var submit = document.createElement("input");
+            submit.type = "submit";
+            form.appendChild(submit);
+
+            var cancel = document.createElement("button");
+            cancel.type = "button";
+            cancel.innerHTML = "Cancel";
+            form.appendChild(cancel);
+
+            cancel.addEventListener("click", function() {
+                var kids = this.parentNode.parentNode.children;
+                kids[0].style.display = "";
+                kids[1].style.display = "";
+                this.parentNode.parentNode.removeChild(this.parentNode);
+            });
+
+            this.previousElementSibling.style.display = "none";
+            this.style.display = "none";
+            this.parentNode.appendChild(form);
+        });
+    }
+  </script>
+{% end %}

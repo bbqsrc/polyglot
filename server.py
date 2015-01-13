@@ -156,6 +156,10 @@ class API:
             "content": content
         }
 
+    def get_most_recent_articles(self, lang):
+        # TODO lol.
+        return self.db.polyglot.articles.find({"lang": lang})
+
     def get_base_article(self, path):
         record = self.db.polyglot.articles.find_one({
             "path": path,
@@ -174,6 +178,16 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class AdminHandler(BaseHandler):
     pass
+
+class RedirectHandler(BaseHandler):
+    def get(self):
+        self.redirect("/%s" % api.base_lang)
+
+class HomeHandler(BaseHandler):
+    def get(self, lang):
+        articles = api.get_most_recent_articles(lang)
+        o = [(a['title'], a['path']) for a in articles]
+        self.render('home.html', lang=lang, pages=o)
 
 class PageHandler(BaseHandler):
     def post(self, iso639, path):
@@ -215,7 +229,9 @@ class PageHandler(BaseHandler):
                 langs=langs)
 
 routes = (
+    (r"/", RedirectHandler),
     (r"/admin", AdminHandler),
+    (r"/([a-z]{2,3})", HomeHandler),
     (r"/([a-z]{2,3})/(.*)", PageHandler)
 )
 

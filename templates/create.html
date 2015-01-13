@@ -1,73 +1,40 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Article!</title>
-    <style>
+{% extends "base.html" %}
 
-      body {
-        background-color: #f1efef;
-      }
-      .container {
-        max-width: 920px;
-        margin: 0 auto;
-        font-family: "Open Sans", sans-serif;
-        font-size: 11pt;
-        color: #444;
-      }
+{% block title %}Create a page - {{ path }} - Polyglot{% end %}
 
-      .untranslated {
-        color: #966;
-      }
+{% block body %}
+  <div>
+    <h2>[ Create a page ]</h2>
+    <h3>{{ path }}</h3>
 
-      .stale {
-        color: #999;
-      }
+    <select id="langs">
+      {% for lang in sorted(langs) %}
+        {% if cur_lang != lang %}
+          <option value="{{ lang }}">{{ lang }}</option>
+        {% else %}
+          <option selected value="{{ lang }}">{{ lang }}</option>
+        {% end %}
+      {% end %}
+    </select>
+  </div>
 
-      h2, h3 {
-        display: inline-block;
-      }
+  <form method="post">
+    <p>Create page "{{ path }}" for language "{{ cur_lang }}".</p>
 
-      #langs { margin-left: 1em; }
-
-      h3 { color: #999; font-weight: normal; margin-left: .3em }
-
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div>
-        <h2>[ Create a page ]</h2>
-        <h3>{{ path }}</h3>
-
-        <select id="langs">
-          {% for lang in sorted(langs) %}
-            {% if cur_lang != lang %}
-              <option value="{{ lang }}">{{ lang }}</option>
-            {% else %}
-              <option selected value="{{ lang }}">{{ lang }}</option>
-            {% end %}
-          {% end %}
-        </select>
-      </div>
-
-      <form method="post">
-        <p>Create page "{{ path }}" for language "{{ cur_lang }}".</p>
-
-        <div>
-          <label for='title'>Title in {{cur_lang}}</label>
-          <input type='text' id='title' name='title'>
-        </div>
-
-        <input type='submit'>
-      </form>
+    <div>
+      <label for='title'>Title in {{cur_lang}}</label>
+      <input type='text' id='title' name='title'>
     </div>
-    <script>
-      document.getElementById('langs').addEventListener('change', function() {
-        if (this.value !== "") {
-          location.href = "/" + this.value + "/{{ path }}";
-        }
-      });
-    </script>
-  </body>
-</html>
 
+    <input type='submit'>
+  </form>
+{% end %}
+{% block scripts %}
+  <script>
+    document.getElementById('langs').addEventListener('change', function() {
+      if (this.value !== "") {
+        location.href = "/" + this.value + "/{{ path }}";
+      }
+    });
+  </script>
+{% end %}
