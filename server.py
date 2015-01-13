@@ -233,7 +233,10 @@ class PageHandler(BaseHandler):
             return
 
         t = record['translation']
-        total = "%.0f" % (100 - ((t['stale'] + t['untranslated']) / t['total'] * 100))
+        if t['total'] == 0:
+            total = "100"
+        else:
+            total = "%.0f" % (100 - ((t['stale'] + t['untranslated']) / t['total'] * 100))
 
         self.render('article.html',
                 title=record['title'],
