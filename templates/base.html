@@ -51,7 +51,16 @@
       h3 > a:active { color: #555; }
       h3 > a:visited { color: #888; }
 
-      .line { margin-bottom: 1em; }
+      .line {
+        margin-bottom: 1em;
+      }
+
+      .line > span {
+        white-space: pre-wrap;       /* CSS 3 */
+        white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+        white-space: -pre-wrap;      /* Opera 4-6 */
+        white-space: -o-pre-wrap;    /* Opera 7 */
+        word-wrap: break-word;       /* Internet Explorer 5.5+ */ }
 
       hr { height: 1px; border: 0; background-color: #e3e3e3; }
     </style>
@@ -61,7 +70,7 @@
     <div class="container">
       {% block body %}{% end %}
       <footer>
-        polyglot - a multilingual wiki.
+        polyglot - a multilingual wiki. <a href="https://github.com/bbqsrc/polyglot">[source]</a>
       </footer>
     </div>
     {% block scripts %}{% end %}
