@@ -25,16 +25,19 @@
   <div class="lines">
   {% for line in content %}
     {% if line.get('stale', None) %}
-    <div class='line stale' data-rev="{{ line['rev'] }}"><span title="{{ escape(line['base_data']) }}">
-        {{ line['data'] }}
+    <div class='line stale' data-rev="{{ line['rev'] }}">
+      <span title="{{ escape(line['base_data']) }}">{% raw (escape(line['data'])) %}</span>
     {% elif line.get('untranslated', None) %}
-    <div class='line untranslated'><span>
-      {{ line['base_data'] }}
+    <div class='line untranslated'>
+      <span>{% raw (escape(line['base_data'])) %}</span>
     {% else %}
-    <div class="line" data-rev="{{ line['rev'] }}"><span>
-      {{ line['data'] }}
-    {% end %}</span>
+    <div class="line" data-rev="{{ line['rev'] }}">
+      <span>{% raw (escape(line['data'])) %}</span>
+    {% end %}
       <button type='button' class='btn-edit'>Edit</button>
+      {% if cur_lang == base_lang %}
+      <button type='button' class='btn-newline'>New Paragraph Before</button>
+      {% end %}
     </div>
   {% end %}
   </div>
@@ -106,6 +109,49 @@
             this.previousElementSibling.style.display = "none";
             this.style.display = "none";
             this.parentNode.appendChild(form);
+        });
+    }
+
+    var newlines = document.querySelectorAll(".btn-newline");
+    for (var i = 0; i < newlines.length; ++i) {
+        newlines[i].addEventListener('click', function() {
+            var form = document.createElement("form");
+            form.method = "post";
+
+            var newline = document.createElement("input");
+            newline.type = "hidden";
+            newline.name = "insert";
+            newline.value = "true";
+            form.appendChild(newline);
+
+            var lineNo = document.createElement("input");
+            lineNo.type = "hidden";
+            lineNo.name = "line";
+            lineNo.value = Array.prototype.indexOf.call(this.parentNode.parentNode.children, this.parentNode);
+            form.appendChild(lineNo);
+
+            var content = document.createElement("textarea");
+            content.name = "data";
+            content.style.width = "100%";
+            content.style.boxSizing = "border-box";
+            form.appendChild(content);
+
+            form.appendChild(document.createElement("br"));
+
+            var submit = document.createElement("input");
+            submit.type = "submit";
+            form.appendChild(submit);
+
+            var cancel = document.createElement("button");
+            cancel.type = "button";
+            cancel.innerHTML = "Cancel";
+            form.appendChild(cancel);
+
+            cancel.addEventListener("click", function() {
+                this.parentNode.parentNode.removeChild(this.parentNode);
+            });
+
+            this.parentNode.insertBefore(form, this.parentNode.children[0]);
         });
     }
   </script>

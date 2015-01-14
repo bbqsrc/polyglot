@@ -50,23 +50,30 @@ class API:
 
             sets = {}
             unsets = {}
+            inserts = {}
             pushes = []
             max_ = len(base_article['content'])
 
-            for index, data in changes:
-                if data is None:
-                    # Delete the line.
-                    unsets['content.%d' % index] = None
-                elif index == -1:
+            for mode, index, data in changes:
+                if mode == 0: # update or delete
+                    if index >= max_:
+                        raise Exception("No.")
+
+                    if data is None:
+                        # Delete the line.
+                        unsets['content.%d' % index] = None
+                    else:
+                        sets['content.%d' % index] = {
+                                "data": data,
+                                "rev": uuid.uuid4().hex
+                            }
+
+                elif mode == 1: # append
                     # Append to end!
                     pushes.append({"rev": uuid.uuid4().hex, "data": data})
-                elif index >= max_:
-                    raise Exception("No.")
-                else:
-                    sets['content.%d' % index] = {
-                            "data": data,
-                            "rev": uuid.uuid4().hex
-                        }
+
+                elif mode == 2: # insert
+                    inserts[index] = { "data": data, "rev": uuid.uuid4().hex }
 
             logging.debug(changes)
 
@@ -82,8 +89,8 @@ class API:
                         "$set": sets
                     })
 
+            # 2a. check if new lines added
             if len(pushes) > 0:
-                # 2a. check if new lines added
                 self.db.polyglot.articles.update({"path": path, "lang": lang}, {
                         "$push": { "content": { "$each": pushes } }
                     })
@@ -93,6 +100,22 @@ class API:
                           "$each": [ { "rev": None } for _ in pushes ]
                     }}
                 }, multi=True)
+            # 2b. check if inserts
+            if len(inserts) > 0:
+                for pos, val in inserts.items():
+                    self.db.polyglot.articles.update({"path": path, "lang": lang}, {
+                            "$push": {
+                                "content": {
+                                    "$each": [val], "$position": pos }
+                            }
+                        })
+
+                    self.db.polyglot.articles.update({"path": path, "lang": {"$ne": lang}}, {
+                        "$push": { "content": {
+                              "$each": [ { "rev": None } ],
+                              "$position": pos
+                        }}
+                    }, multi=True)
 
             # 3. Delete the nulls.
             if len(unsets) > 0:
@@ -102,7 +125,7 @@ class API:
         else:
             chgs = {}
 
-            for index, data in changes:
+            for mode, index, data in changes:
                 base_content = base_article['content'][index]
                 base_rev = base_content['rev']
 
@@ -203,16 +226,19 @@ class HomeHandler(BaseHandler):
 
 class PageHandler(BaseHandler):
     def post(self, iso639, path):
+        insert = self.get_body_argument('insert', None)
         line = self.get_body_argument('line', None)
         add = self.get_body_argument('add', None)
 
         logging.debug(add)
 
-        if add is not None:
-            api.update_article(iso639, path, [(-1, self.get_body_argument('data'))])
+        if insert is not None:
+            api.update_article(iso639, path, [(2, int(line), self.get_body_argument('data'))])
+        elif add is not None:
+            api.update_article(iso639, path, [(1, None, self.get_body_argument('data'))])
         elif line is not None:
             # edit mode!
-            api.update_article(iso639, path, [(int(line), self.get_body_argument('data'))])
+            api.update_article(iso639, path, [(0, int(line), self.get_body_argument('data'))])
         else:
             title = self.get_body_argument('title')
             # TODO check title validity
@@ -268,22 +294,22 @@ def main():
     api.create_article("fr", "test-article", "Article de test")
 
     api.update_article("fr", "test-article", [
-        (1, "C'est le oneieme ligne."),
-        (2, "C'est le lolieme ligne.")
+        (0, 1, "C'est le oneieme ligne."),
+        (0, 2, "C'est le lolieme ligne.")
     ])
 
     api.update_article("en", "test-article", [
-        (-1, "A new line has appeared."),
-        (0, None)
+        (1, None, "A new line has appeared."),
+        (0, 0, None)
     ])
 
     api.update_article("en", "test-article", [
-        (-1, "A new line has appeared."),
+        (1, None, "A new line has appeared."),
     ])
 
     api.update_article("fr", "test-article", [
-        (1, "French final update"),
-        (3, "French final update")
+        (0, 1, "French final update"),
+        (0, 3, "French final update")
     ])
 
     api.create_article("de", "test-article", "Testartikel")
