@@ -367,6 +367,18 @@ In addition to supporting further protections of human dignity through the curta
 No liberty is more fundamental than the right to live free of pain and physical torment. We support the right of adults of sound mind, facing terminal illness, and with appropriate safeguards, to end their lives with dignity and peace if they so choose. Contrary to frequent claims, support for voluntary euthanasia is not a statement of any kind on the value of life. It encompasses no more than respect for the right of persons to decide on such weighty questions for themselves, in the context of their own private circumstances. We believe politicians should represent the views of citizens, not use political office to impose religious views into the private sphere. Bans on voluntary euthanasia create a painful legacy of unmanageable suffering, lost dignity, and the sacrifice of free choice.
 
 * View detailed civil liberties policy text.""".split('\n\n')])
+
+    api.create_article("fr", "ppau-platform", "Manifeste du Parti Pirate Australie")
+
+    api.update_article("fr", "ppau-platform", [
+            (0, 0, "# Déclaration de manifeste et les principes"),
+            (0, 1, "Parti Pirate Australie est fondée sur les principes de base de:"),
+            (0, 2, """* La liberté de la culture et de la parole,
+* Le droit inaliénable à la liberté et la vie privée,
+* La protection des libertés prévus par la société de l'information mondiale en évolution,
+* La transparence des institutions, et
+* La restauration des libertés et de l'équilibre perdu par l'empiètement des monopoles intellectuels nuisibles et envahissants.""")
+        ])
     app = tornado.web.Application(routes, template_path="templates")
 
     app.listen(8888, xheaders=True)
