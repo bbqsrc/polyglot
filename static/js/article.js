@@ -61,9 +61,8 @@
             form.appendChild(cancel);
 
             cancel.addEventListener("click", function() {
-                var parent = parentLine;
-                parent.querySelector('.controls').display = "";
-                parent.querySelector('.md').style.display = "";
+                parentLine.querySelector('.controls').style.display = "";
+                parentLine.querySelector('.md').style.display = "";
                 form.parentNode.removeChild(form);
             });
 
