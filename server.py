@@ -252,10 +252,18 @@ class PageHandler(BaseHandler):
         langs = api.get_article_languages(path)
 
         if record is None:
-            self.render('create.html',
-                    path=path,
-                    cur_lang=iso639,
-                    langs=langs + [iso639])
+            self.set_status(404)
+
+            if api.base_lang == iso639 or api.get_base_article(path) is not None:
+                self.render('create.html',
+                        path=path,
+                        cur_lang=iso639,
+                        langs=langs + [iso639])
+            else:
+                self.render('notexist.html',
+                        path=path,
+                        cur_lang=iso639,
+                        base_lang=api.base_lang)
             return
 
         t = record['translation']
