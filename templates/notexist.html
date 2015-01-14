@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Page not found - {{ path }} - Polyglot{% end %}
+
+{% block body %}
+  <div>
+    <h2>[ Page not found ]</h2>
+    <h3>{{ path }}</h3>
+  </div>
+
+  <p>You must create this page "{{ path }}" in the base language "{{ base_lang }}" first.</p>
+
+  <a href="/{{ base_lang }}/{{path}}">Create "{{ path }}" in "{{ base_lang }}"</a>
+{% end %}
