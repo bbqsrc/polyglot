@@ -28,27 +28,29 @@
     <button type='button' class='btn-togglecontrols'>Toggle Controls</button>
   </header>
 
-  <section id="page" class="lines">
+  <section id="page">
     <script>document.getElementById('page').style.visibility = "hidden";</script>
-  {% for line in content %}
-    {% if line.get('stale', None) %}
-    <div class='line stale' data-rev="{{ line['rev'] }}">
-      <span class='line-data' title="{{ escape(line['base_data']) }}">{% raw (escape(line['data'])) %}</span>
-    {% elif line.get('untranslated', None) %}
-    <div class='line untranslated'>
-      <span class='line-data'>{% raw (escape(line['base_data'])) %}</span>
-    {% else %}
-    <div class="line" data-rev="{{ line['rev'] }}">
-      <span class='line-data'>{% raw (escape(line['data'])) %}</span>
-    {% end %}
-      <div class='controls'>
-        <button type='button' class='btn-edit'>Edit</button>
-        {% if cur_lang == base_lang %}
-        <button type='button' class='btn-newline'>New Paragraph Before</button>
-        {% end %}
+    <div class="lines">
+    {% for line in content %}
+      {% if line.get('stale', None) %}
+      <div class='line stale' data-rev="{{ line['rev'] }}">
+        <span class='line-data' title="{{ escape(line['base_data']) }}">{% raw (escape(line['data'])) %}</span>
+      {% elif line.get('untranslated', None) %}
+      <div class='line untranslated'>
+        <span class='line-data'>{% raw (escape(line['base_data'])) %}</span>
+      {% else %}
+      <div class="line" data-rev="{{ line['rev'] }}">
+        <span class='line-data'>{% raw (escape(line['data'])) %}</span>
+      {% end %}
+        <div class='controls'>
+          <button type='button' class='btn-edit'>Edit</button>
+          {% if cur_lang == base_lang %}
+          <button type='button' class='btn-newline'>New Paragraph Before</button>
+          {% end %}
+        </div>
       </div>
+    {% end %}
     </div>
-  {% end %}
   </section>
 
   {% if cur_lang == base_lang %}

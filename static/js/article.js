@@ -64,7 +64,7 @@
                 var parent = parentLine;
                 parent.querySelector('.controls').display = "";
                 parent.querySelector('.md').style.display = "";
-                parent.removeChild(parentControls);
+                form.parentNode.removeChild(form);
             });
 
             parentLine.querySelector('.md').style.display = "none";
@@ -112,7 +112,7 @@
             form.appendChild(cancel);
 
             cancel.addEventListener("click", function() {
-                parentLine.removeChild(this.parentNode);
+                form.parentNode.removeChild(form);
             });
 
             parentLine.insertBefore(form, parentLine.children[0]);
