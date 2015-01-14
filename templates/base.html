@@ -7,6 +7,13 @@
         background-color: #f1efef;
         margin: 0;
       }
+
+      #page {
+        -webkit-transition: all 1s ease;
+        -moz-transition: all 1s ease;
+        transition: all 1s ease;
+      }
+
       .container {
         max-width: 820px;
         margin: 0 auto;
@@ -63,6 +70,10 @@
         word-wrap: break-word;       /* Internet Explorer 5.5+ */ }
 
       hr { height: 1px; border: 0; background-color: #e3e3e3; }
+
+      body.hide-controls .controls {
+        display: none;
+      }
     </style>
     {% block head %}{% end %}
   </head>

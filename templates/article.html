@@ -2,6 +2,10 @@
 
 {% block title %}{{title}} - Polyglot{% end %}
 
+{% block head %}
+<script src="/static/js/markdown.min.js"></script>
+{% end %}
+
 {% block body %}
   <header>
     {% if cur_lang == base_lang %}
@@ -20,32 +24,38 @@
         {% end %}
       {% end %}
     </select>
+
+    <button type='button' class='btn-togglecontrols'>Toggle Controls</button>
   </header>
 
-  <div class="lines">
+  <section id="page" class="lines">
+    <script>document.getElementById('page').style.visibility = "hidden";</script>
   {% for line in content %}
     {% if line.get('stale', None) %}
     <div class='line stale' data-rev="{{ line['rev'] }}">
-      <span title="{{ escape(line['base_data']) }}">{% raw (escape(line['data'])) %}</span>
+      <span class='line-data' title="{{ escape(line['base_data']) }}">{% raw (escape(line['data'])) %}</span>
     {% elif line.get('untranslated', None) %}
     <div class='line untranslated'>
-      <span>{% raw (escape(line['base_data'])) %}</span>
+      <span class='line-data'>{% raw (escape(line['base_data'])) %}</span>
     {% else %}
     <div class="line" data-rev="{{ line['rev'] }}">
-      <span>{% raw (escape(line['data'])) %}</span>
+      <span class='line-data'>{% raw (escape(line['data'])) %}</span>
     {% end %}
-      <button type='button' class='btn-edit'>Edit</button>
-      {% if cur_lang == base_lang %}
-      <button type='button' class='btn-newline'>New Paragraph Before</button>
-      {% end %}
+      <div class='controls'>
+        <button type='button' class='btn-edit'>Edit</button>
+        {% if cur_lang == base_lang %}
+        <button type='button' class='btn-newline'>New Paragraph Before</button>
+        {% end %}
+      </div>
     </div>
   {% end %}
-  </div>
+  </section>
 
   {% if cur_lang == base_lang %}
-  <hr>
 
-  <form method="post">
+  <form method="post" class='controls'>
+    <hr>
+
     <p>Add new paragraph</p>
     <input type="hidden" name="add" value="true">
     <textarea name="data" style="width: 100%; box-sizing: border-box;"></textarea>
@@ -56,103 +66,9 @@
 {% end %}
 
 {% block scripts %}
-  <script>
-    document.getElementById('langs').addEventListener('change', function() {
-      if (this.value !== "") {
-        location.href = "/" + this.value + "/{{ path }}";
-      }
-    });
-
-    var edits = document.querySelectorAll(".btn-edit");
-    for (var i = 0; i < edits.length; ++i) {
-        edits[i].addEventListener('click', function() {
-            if (this.previousElementSibling.style.display === "none") {
-              this.previousElementSibling.style.display = "";
-              this.parentNode.removeChild(this.nextElementSibling);
-              return;
-            }
-
-            var form = document.createElement("form");
-            form.method = "post";
-
-            var lineNo = document.createElement("input");
-            lineNo.type = "hidden";
-            lineNo.name = "line";
-            lineNo.value = Array.prototype.indexOf.call(this.parentNode.parentNode.children, this.parentNode);
-            form.appendChild(lineNo);
-
-            var content = document.createElement("textarea");
-            content.name = "data";
-            content.value = this.previousElementSibling.innerHTML.trim();
-            content.style.width = "100%";
-            content.style.boxSizing = "border-box";
-            form.appendChild(content);
-
-            form.appendChild(document.createElement("br"));
-
-            var submit = document.createElement("input");
-            submit.type = "submit";
-            form.appendChild(submit);
-
-            var cancel = document.createElement("button");
-            cancel.type = "button";
-            cancel.innerHTML = "Cancel";
-            form.appendChild(cancel);
-
-            cancel.addEventListener("click", function() {
-                var kids = this.parentNode.parentNode.children;
-                kids[0].style.display = "";
-                kids[1].style.display = "";
-                this.parentNode.parentNode.removeChild(this.parentNode);
-            });
-
-            this.previousElementSibling.style.display = "none";
-            this.style.display = "none";
-            this.parentNode.appendChild(form);
-        });
-    }
-
-    var newlines = document.querySelectorAll(".btn-newline");
-    for (var i = 0; i < newlines.length; ++i) {
-        newlines[i].addEventListener('click', function() {
-            var form = document.createElement("form");
-            form.method = "post";
-
-            var newline = document.createElement("input");
-            newline.type = "hidden";
-            newline.name = "insert";
-            newline.value = "true";
-            form.appendChild(newline);
-
-            var lineNo = document.createElement("input");
-            lineNo.type = "hidden";
-            lineNo.name = "line";
-            lineNo.value = Array.prototype.indexOf.call(this.parentNode.parentNode.children, this.parentNode);
-            form.appendChild(lineNo);
-
-            var content = document.createElement("textarea");
-            content.name = "data";
-            content.style.width = "100%";
-            content.style.boxSizing = "border-box";
-            form.appendChild(content);
-
-            form.appendChild(document.createElement("br"));
-
-            var submit = document.createElement("input");
-            submit.type = "submit";
-            form.appendChild(submit);
-
-            var cancel = document.createElement("button");
-            cancel.type = "button";
-            cancel.innerHTML = "Cancel";
-            form.appendChild(cancel);
-
-            cancel.addEventListener("click", function() {
-                this.parentNode.parentNode.removeChild(this.parentNode);
-            });
-
-            this.parentNode.insertBefore(form, this.parentNode.children[0]);
-        });
-    }
-  </script>
+  <script>var polyglot = { path: "{{path}}" };</script>
+  <script src='/static/js/article.js'></script>
+  <script>requestAnimationFrame(function() {
+    document.getElementById('page').style.visibility = "";
+  });</script>
 {% end %}

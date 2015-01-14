@@ -5,6 +5,7 @@ import pymongo
 import logging
 import uuid
 
+from tornado.web import StaticFileHandler
 from itertools import zip_longest
 
 db = pymongo.MongoClient()
@@ -284,6 +285,7 @@ class PageHandler(BaseHandler):
 routes = (
     (r"/", RedirectHandler),
     (r"/admin", AdminHandler),
+    (r"/static/(.*)", StaticFileHandler, {"path": "static"}),
     (r"/([a-z]{2,3})", HomeHandler),
     (r"/([a-z]{2,3})/(.*)", PageHandler)
 )
